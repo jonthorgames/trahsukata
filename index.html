@@ -83,31 +83,31 @@
 
     function renderTree() {
       if(tree) tree.destroy();
-      tree = new FamilyTree(document.getElementById("tree"), {
-        nodes: familyData,
-        nodeBinding: {
-          field_0: "namalengkap",
-          field_1: "panggilan",
-          field_2: "domisili"
-        },
-        template: "john",
-        editForm: false,
-        nodeMenu: {
-          edit: { text: "Edit", icon: FamilyTree.icon.edit(18, 18, "#039BE5") }
-        },
-        onNodeMenuClick: function(args) {
-          // FamilyTree.js v7+
-          if(args.menuItem === "edit") {
-            const data = familyData.find(x => x.id == args.nodeId);
-            if(data) {
-              selectedNodeId = args.nodeId;
-              openModal(data);
-            } else {
-              alert("Data tidak ditemukan!");
-            }
-          }
-        }
-      });
+tree = new FamilyTree(document.getElementById("tree"), {
+  nodes: familyData,
+  nodeBinding: {
+    field_0: "namalengkap",
+    field_1: "panggilan",
+    field_2: "domisili"
+  },
+  template: "john",
+  editForm: false,
+  enableEdit: false, // Nonaktifkan edit panel bawaan!
+  nodeMenu: {
+    edit: { text: "Edit", icon: FamilyTree.icon.edit(18, 18, "#039BE5") }
+  },
+  onNodeMenuClick: function(args) {
+    if(args.menuItem === "edit") {
+      const data = familyData.find(x => x.id == args.nodeId);
+      if(data) {
+        selectedNodeId = args.nodeId;
+        openModal(data);
+      } else {
+        alert("Data tidak ditemukan!");
+      }
+    }
+  }
+});
     }
 
     // Handle form submit
