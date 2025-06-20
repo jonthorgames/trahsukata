@@ -48,7 +48,7 @@
 
   <script>
     // Ganti dengan URL Apps Script Anda
-    const sheetApi = "https://script.google.com/macros/s/AKfycbxTr9XIn32K4Kb4wDdGOY-mAwTZlE-8cL6zCGsv8YmWmMfKXN6yi9EQWZchwdWSywDs4g/exec";
+    const sheetApi = "https://script.google.com/macros/s/AKfycbyZZl2h8OBb2buS5Qv-3oumCNtC4e9xGHGRa0A6jGJ3Dq6BU8U5QblYnK7nRBz-_WNhVQ/exec";
 
     let familyData = [];
     let tree = null;
@@ -57,7 +57,7 @@
     // Modal logic
     function openModal(data) {
       document.getElementById('editModal').style.display = 'block';
-      document.getElementById('edit-id').value = data.id;
+      document.getElementById('edit-id').value = data.id || "";
       document.getElementById('edit-namalengkap').value = data.namalengkap || '';
       document.getElementById('edit-panggilan').value = data.panggilan || '';
       document.getElementById('edit-domisili').value = data.domisili || '';
@@ -69,7 +69,6 @@
       document.getElementById('editModal').style.display = 'none';
     }
 
-    // Load Family Tree
     function loadFamilyTree() {
       fetch(sheetApi)
         .then(res => res.json())
@@ -96,11 +95,16 @@
         nodeMenu: {
           edit: { text: "Edit", icon: FamilyTree.icon.edit(18, 18, "#039BE5") }
         },
-        onNodeMenuClick: function({ nodeId, menuItem }) {
-          if(menuItem === "edit") {
-            const data = familyData.find(x => x.id == nodeId);
-            selectedNodeId = nodeId;
-            openModal(data);
+        onNodeMenuClick: function(args) {
+          // FamilyTree.js v7+
+          if(args.menuItem === "edit") {
+            const data = familyData.find(x => x.id == args.nodeId);
+            if(data) {
+              selectedNodeId = args.nodeId;
+              openModal(data);
+            } else {
+              alert("Data tidak ditemukan!");
+            }
           }
         }
       });
@@ -119,7 +123,6 @@
         tahunlahir: form.tahunlahir.value,
         tahunmeninggal: form.tahunmeninggal.value
       };
-      // Update to Google Sheets
       fetch(sheetApi, {
         method: "POST",
         body: JSON.stringify(updated),
@@ -129,7 +132,7 @@
       .then(resp => {
         if(resp.success) {
           closeModal();
-          loadFamilyTree(); // reload data
+          setTimeout(loadFamilyTree, 500); // beri jeda agar Google Sheets update
         } else {
           alert("Gagal update data.");
         }
@@ -141,7 +144,6 @@
       if(event.target == document.getElementById('editModal')) closeModal();
     }
 
-    // Initial load
     loadFamilyTree();
   </script>
 </body>
