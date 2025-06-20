@@ -149,21 +149,19 @@
           // Simpan versi raw agar bisa akses semua field
           nodesRaw = data;
           // Mapping ke FamilyTree.js format
-          const nodes = data.map(d => ({
-            id: d.id,
-            namalengkap: d.namalengkap,
-            kelamin: d.kelamin,
-            pids: d.pid ? [d.pid] : [],
-            fid: d.ida || undefined,
-            mid: d.idi || undefined,
-            domisili: d.domisili,
-            tahunlahir: d.tahunlahir,
-            tahunmeninggal: d.tahunmeninggal,
-            panggilan: d.panggilan,
-            gender: d.kelamin === "L" ? "male" : "female"
-          }));
-          renderFamilyTree(nodes);
-        });
+const nodes = data.map(d => ({
+  id: d.id,
+  namalengkap: d.namalengkap,
+  kelamin: d.kelamin,
+  gender: d.kelamin && d.kelamin.toUpperCase() === "L" ? "male" : "female",
+  pids: d.pids || [],      // langsung gunakan d.pids (array)
+  fid: d.fid || undefined, // langsung gunakan d.fid
+  mid: d.mid || undefined, // langsung gunakan d.mid
+  domisili: d.domisili,
+  tahunlahir: d.tahunlahir,
+  tahunmeninggal: d.tahunmeninggal,
+  panggilan: d.panggilan
+}));
     }
 
     // Load initial data
