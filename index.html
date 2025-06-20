@@ -6,166 +6,48 @@
   <script src="https://balkan.app/js/FamilyTree.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
-    body { min-height: 100vh; min-width: 100vw; background: #fff; }
+    html, body { height: 100%; width: 100%; margin: 0; padding: 0; box-sizing: border-box; }
+    body { min-height: 100vh; min-width: 100vw; display: flex; flex-direction: column; align-items: stretch; background: #fff; }
     h1 { text-align: center; font-size: 2rem; margin: 1rem 0 0.5rem 0; }
-    #tree { width: 100vw; height: 80vh; min-height: 400px; }
-    /* Modal styling */
-    .modal-bg {
-      display: none; /* Hidden by default */
-      position: fixed; z-index: 9999; left: 0; top: 0; width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.4); align-items: center; justify-content: center;
+    #tree { flex: 1 1 0; width: 100vw; height: 80vh; min-height: 400px; min-width: 100px; }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.2rem; margin: 0.6rem 0 0.3rem 0; }
+      #tree { height: 80vh; min-height: 200px; }
     }
-    .modal-content {
-      background: white; padding: 1.5em; border-radius: 8px; min-width: 280px; max-width: 95vw;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    }
-    .modal-content label { display: block; margin-top: 0.5em; }
-    .modal-content input, .modal-content select { width: 100%; margin: 0.2em 0 0.8em 0; }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 1em; }
-    .modal-actions button { min-width: 80px; }
+    .bft-control-bar { max-width: 100vw !important; }
   </style>
 </head>
 <body>
   <h1>Family Tree (FamilyTree.js)</h1>
   <div id="tree"></div>
-
-  <!-- Modal Popup -->
-  <div class="modal-bg" id="modal-bg">
-    <div class="modal-content">
-      <form id="edit-form">
-        <h2>Edit Anggota</h2>
-        <input type="hidden" id="edit-id" name="id">
-        <label>Nama Lengkap
-          <input type="text" id="edit-namalengkap" name="namalengkap" required>
-        </label>
-        <label>Panggilan
-          <input type="text" id="edit-panggilan" name="panggilan">
-        </label>
-        <label>Jenis Kelamin
-          <select id="edit-kelamin" name="kelamin">
-            <option value="L">Laki-laki</option>
-            <option value="P">Perempuan</option>
-          </select>
-        </label>
-        <label>Domisili
-          <input type="text" id="edit-domisili" name="domisili">
-        </label>
-        <label>Tahun Lahir
-          <input type="number" id="edit-tahunlahir" name="tahunlahir">
-        </label>
-        <label>Tahun Meninggal
-          <input type="number" id="edit-tahunmeninggal" name="tahunmeninggal">
-        </label>
-        <div class="modal-actions">
-          <button type="button" id="modal-cancel">Batal</button>
-          <button type="submit" id="modal-save">Simpan</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <script>
-    // Ganti dengan URL Web App Google Apps Script Anda
-    const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyZZl2h8OBb2buS5Qv-3oumCNtC4e9xGHGRa0A6jGJ3Dq6BU8U5QblYnK7nRBz-_WNhVQ/exec";
-
-    let nodesRaw = [];
-
-    // --- Modal Logic ---
-    const modalBg = document.getElementById('modal-bg');
-    const editForm = document.getElementById('edit-form');
-    document.getElementById('modal-cancel').onclick = () => { modalBg.style.display = 'none'; };
-
-    function openEditModal(node) {
-      // Isi form dengan data node
-      document.getElementById('edit-id').value = node.id || "";
-      document.getElementById('edit-namalengkap').value = node.namalengkap || "";
-      document.getElementById('edit-panggilan').value = node.panggilan || "";
-      document.getElementById('edit-kelamin').value = node.kelamin || "L";
-      document.getElementById('edit-domisili').value = node.domisili || "";
-      document.getElementById('edit-tahunlahir').value = node.tahunlahir || "";
-      document.getElementById('edit-tahunmeninggal').value = node.tahunmeninggal || "";
-      modalBg.style.display = 'flex';
-    }
-
-    editForm.onsubmit = function(e) {
-      e.preventDefault();
-      // Ambil data dari form
-      const data = {
-        id: document.getElementById('edit-id').value,
-        namalengkap: document.getElementById('edit-namalengkap').value,
-        panggilan: document.getElementById('edit-panggilan').value,
-        kelamin: document.getElementById('edit-kelamin').value,
-        domisili: document.getElementById('edit-domisili').value,
-        tahunlahir: document.getElementById('edit-tahunlahir').value,
-        tahunmeninggal: document.getElementById('edit-tahunmeninggal').value
-      };
-
-      // Kirim ke Google Sheets (POST)
-      fetch(GOOGLE_SHEET_API_URL, {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {"Content-Type": "application/json"}
-      })
+    fetch('https://script.google.com/macros/s/AKfycbyZZl2h8OBb2buS5Qv-3oumCNtC4e9xGHGRa0A6jGJ3Dq6BU8U5QblYnK7nRBz-_WNhVQ/exec')
       .then(res => res.json())
-      .then(json => {
-        if (json.success) {
-          alert('Data berhasil diupdate!');
-          modalBg.style.display = 'none';
-          // Refresh data dari Google Sheets
-          loadTreeData();
-        } else {
-          alert('Gagal update data! Coba lagi.');
-        }
-      })
-      .catch(() => alert('Gagal terhubung ke server!'));
-    };
+      .then(data => {
+        const nodes = data.map(d => ({
+          id: d.id,
+          name: d.namalengkap,
+          gender: d.kelamin === "L" ? "male" : "female",
+          pids: d.pid ? [d.pid] : [],
+          fid: d.ida || undefined,
+          mid: d.idi || undefined,
+          domisili: d.domisili,
+          tahunlahir: d.tahunlahir,
+          tahunmeninggal: d.tahunmeninggal,
+          panggilan: d.panggilan
+        }));
 
-    // --- FamilyTree.js ---
-    function renderFamilyTree(nodes) {
-      new FamilyTree(document.getElementById("tree"), {
-        nodes: nodes,
-        nodeBinding: { field_0: "namalengkap" },
-        enableSearch: true,
-        // Trigger modal edit jika klik ikon pensil di node
-        editUI: false, // Disable built-in edit
-        nodeMenu: {
-          edit: { text: "Edit Anggota" }
-        },
-        onNodeMenuClick: function(sender, args) {
-          if (args.menuItem === "edit") {
-            // Ambil data asli node dari nodesRaw (yang lebih lengkap)
-            const node = nodesRaw.find(n => n.id === args.node.id);
-            openEditModal(node);
-          }
-        }
+        new FamilyTree(document.getElementById("tree"), {
+          nodes,
+          nodeBinding: {
+            field_0: "name",
+            // bisa tambah field_1: "domisili", dst, jika ingin tampilkan info lain di node
+          },
+          scaleInitial: window.innerWidth < 600 ? FamilyTree.match.boundary : 1,
+          min: window.innerWidth < 600 ? 0.1 : 0.5,
+          max: 2
+        });
       });
-    }
-
-    function loadTreeData() {
-      fetch(GOOGLE_SHEET_API_URL)
-        .then(res => res.json())
-        .then(data => {
-          // Simpan versi raw agar bisa akses semua field
-          nodesRaw = data;
-          // Mapping ke FamilyTree.js format
-const nodes = data.map(d => ({
-  id: d.id,
-  namalengkap: d.namalengkap,
-  kelamin: d.kelamin,
-  gender: d.kelamin && d.kelamin.toUpperCase() === "L" ? "male" : "female",
-  pids: d.pids || [],      // langsung gunakan d.pids (array)
-  fid: d.fid || undefined, // langsung gunakan d.fid
-  mid: d.mid || undefined, // langsung gunakan d.mid
-  domisili: d.domisili,
-  tahunlahir: d.tahunlahir,
-  tahunmeninggal: d.tahunmeninggal,
-  panggilan: d.panggilan
-}));
-    }
-
-    // Load initial data
-    loadTreeData();
   </script>
 </body>
 </html>
