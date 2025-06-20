@@ -1,144 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Family Tree Keluarga1</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://balkangraph.com/js/familytree.js"></script>
+  <title>Family Tree - FamilyTree.js</title>
+  <script src="https://balkan.app/js/FamilyTree.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { margin: 0; }
-    #tree { width: 100vw; height: 100vh; }
-    .ft-title { font-size: 2em; text-align: center; margin: 16px 0; }
-    /* Modal Styles */
-    .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,.3);}
-    .modal-content { background:#fff; margin:10% auto; padding:20px; border-radius:8px; width:300px; }
-    .modal input, .modal select { width:100%; margin:6px 0; padding:6px; }
-    .modal-actions { text-align:right; margin-top:10px;}
-    .modal-actions button { margin-left:8px;}
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      min-height: 100vh;
+      min-width: 100vw;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      background: #fff;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin: 1rem 0 0.5rem 0;
+    }
+    #tree {
+      flex: 1 1 0;
+      width: 100vw;
+      height: 80vh;
+      min-height: 400px;
+      min-width: 100px;
+    }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.2rem;
+        margin: 0.6rem 0 0.3rem 0;
+      }
+      #tree {
+        height: 80vh;
+        min-height: 200px;
+      }
+    }
+    /* Hilangkan border scroll, full canvas */
+    .bft-control-bar {
+      max-width: 100vw !important;
+    }
   </style>
 </head>
 <body>
-  <div class="ft-title">Family Tree Keluarga</div>
-  <div id="tree">Memuat data...</div>
-  <!-- Modal Popup Edit -->
-  <div class="modal" id="editModal">
-    <div class="modal-content">
-      <h3>Edit Anggota</h3>
-      <form id="editForm">
-        <input type="hidden" id="edit-id" name="id">
-        <label>Nama Lengkap <input type="text" id="edit-namalengkap" name="namalengkap"></label>
-        <label>Panggilan <input type="text" id="edit-panggilan" name="panggilan"></label>
-        <label>Domisili <input type="text" id="edit-domisili" name="domisili"></label>
-        <label>Jenis Kelamin
-          <select id="edit-kelamin" name="kelamin">
-            <option value="L">Laki-laki</option>
-            <option value="P">Perempuan</option>
-          </select>
-        </label>
-        <label>Tahun Lahir <input type="text" id="edit-tahunlahir" name="tahunlahir"></label>
-        <label>Tahun Meninggal <input type="text" id="edit-tahunmeninggal" name="tahunmeninggal"></label>
-        <div class="modal-actions">
-          <button type="button" onclick="closeModal()">Batal</button>
-          <button type="submit">Simpan</button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <h1>Family Tree (FamilyTree.js)</h1>
+  <div id="tree"></div>
   <script>
-    // Ganti dengan URL Apps Script Anda
-    const sheetApi = "https://script.google.com/macros/s/AKfycbxTr9XIn32K4Kb4wDdGOY-mAwTZlE-8cL6zCGsv8YmWmMfKXN6yi9EQWZchwdWSywDs4g/exec";
-    let familyData = [];
-    let tree = null;
-    let selectedNodeId = null;
+    fetch('https://script.google.com/macros/s/AKfycbyZZl2h8OBb2buS5Qv-3oumCNtC4e9xGHGRa0A6jGJ3Dq6BU8U5QblYnK7nRBz-_WNhVQ/exec')
+      .then(res => res.json())
+      .then(data => {
+        const nodes = data.map(d => ({
+          id: d.id,
+          name: d.name,
+          gender: d.gender === "L" ? "male" : "female",
+          pids: d.pids ? [d.pids] : [],
+          fid: d.fid || undefined,
+          mid: d.mid || undefined
+        }));
 
-    function openModal(data) {
-      document.getElementById('editModal').style.display = 'block';
-      document.getElementById('edit-id').value = data.id || "";
-      document.getElementById('edit-namalengkap').value = data.namalengkap || '';
-      document.getElementById('edit-panggilan').value = data.panggilan || '';
-      document.getElementById('edit-domisili').value = data.domisili || '';
-      document.getElementById('edit-kelamin').value = data.kelamin || 'L';
-      document.getElementById('edit-tahunlahir').value = data.tahunlahir || '';
-      document.getElementById('edit-tahunmeninggal').value = data.tahunmeninggal || '';
-    }
-    function closeModal() {
-      document.getElementById('editModal').style.display = 'none';
-    }
-
-    // Load Family Tree
-    function loadFamilyTree() {
-      fetch(sheetApi)
-        .then(res => res.json())
-        .then(data => {
-          familyData = data;
-          renderTree();
-        })
-        .catch(() => {
-          document.getElementById("tree").innerText = "Gagal memuat data silsilah.";
+        new FamilyTree(document.getElementById("tree"), {
+          nodes,
+          nodeBinding: {
+            field_0: "name"
+          },
+          // Tambahkan auto-sizing di mobile
+          scaleInitial: window.innerWidth < 600 ? FamilyTree.match.boundary : 1,
+          min: window.innerWidth < 600 ? 0.1 : 0.5,
+          max: 2
         });
-    }
-
-    function renderTree() {
-      if(tree) tree.destroy();
-      tree = new FamilyTree(document.getElementById("tree"), {
-        nodes: familyData,
-        nodeBinding: {
-          field_0: "namalengkap",
-          field_1: "panggilan",
-          field_2: "domisili"
-        },
-        template: "john",
-        editForm: false, // Matikan edit bawaan, kita override sendiri
-        enableEdit: true, // Aktifkan tombol edit di panel kanan!
-        nodeMenu: {}, // Kosongkan nodeMenu, edit hanya di panel kanan
-        onEdit: function(sender, node) {
-          // Dipanggil saat tombol edit di panel kanan di-klik!
-          const data = familyData.find(x => x.id == node.id);
-          if(data) {
-            selectedNodeId = node.id;
-            openModal(data);
-          }
-          // Return false agar edit bawaan FamilyTree.js tidak muncul
-          return false;
-        }
       });
-    }
-
-    // Handle form submit
-    document.getElementById('editForm').onsubmit = function(e) {
-      e.preventDefault();
-      const form = e.target;
-      const updated = {
-        id: form.id.value,
-        namalengkap: form.namalengkap.value,
-        panggilan: form.panggilan.value,
-        domisili: form.domisili.value,
-        kelamin: form.kelamin.value,
-        tahunlahir: form.tahunlahir.value,
-        tahunmeninggal: form.tahunmeninggal.value
-      };
-      fetch(sheetApi, {
-        method: "POST",
-        body: JSON.stringify(updated),
-        headers: { "Content-Type": "application/json" }
-      })
-      .then(r => r.json())
-      .then(resp => {
-        if(resp.success) {
-          closeModal();
-          setTimeout(loadFamilyTree, 500); // beri jeda agar Google Sheets update
-        } else {
-          alert("Gagal update data.");
-        }
-      });
-    };
-
-    // Modal close on click outside
-    window.onclick = function(event) {
-      if(event.target == document.getElementById('editModal')) closeModal();
-    }
-
-    loadFamilyTree();
   </script>
 </body>
 </html>
