@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Family Tree Otomatis</title>
+  <title>Family Tree Keluarga</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://balkangraph.com/js/familytree.js"></script>
   <style>
@@ -20,7 +20,6 @@
 <body>
   <div class="ft-title">Family Tree Keluarga</div>
   <div id="tree">Memuat data...</div>
-
   <!-- Modal Popup Edit -->
   <div class="modal" id="editModal">
     <div class="modal-content">
@@ -45,16 +44,13 @@
       </form>
     </div>
   </div>
-
   <script>
     // Ganti dengan URL Apps Script Anda
-    const sheetApi = "https://script.google.com/macros/s/AKfycbxTr9XIn32K4Kb4wDdGOY-mAwTZlE-8cL6zCGsv8YmWmMfKXN6yi9EQWZchwdWSywDs4g/exec";
-
+    const sheetApi = "https://script.google.com/macros/s/AKfycbyZZl2h8OBb2buS5Qv-3oumCNtC4e9xGHGRa0A6jGJ3Dq6BU8U5QblYnK7nRBz-_WNhVQ/exec";
     let familyData = [];
     let tree = null;
     let selectedNodeId = null;
 
-    // Modal logic
     function openModal(data) {
       document.getElementById('editModal').style.display = 'block';
       document.getElementById('edit-id').value = data.id || "";
@@ -69,6 +65,7 @@
       document.getElementById('editModal').style.display = 'none';
     }
 
+    // Load Family Tree
     function loadFamilyTree() {
       fetch(sheetApi)
         .then(res => res.json())
@@ -83,31 +80,28 @@
 
     function renderTree() {
       if(tree) tree.destroy();
-tree = new FamilyTree(document.getElementById("tree"), {
-  nodes: familyData,
-  nodeBinding: {
-    field_0: "namalengkap",
-    field_1: "panggilan",
-    field_2: "domisili"
-  },
-  template: "john",
-  editForm: false,
-  enableEdit: false, // Nonaktifkan edit panel bawaan!
-  nodeMenu: {
-    edit: { text: "Edit", icon: FamilyTree.icon.edit(18, 18, "#039BE5") }
-  },
-  onNodeMenuClick: function(args) {
-    if(args.menuItem === "edit") {
-      const data = familyData.find(x => x.id == args.nodeId);
-      if(data) {
-        selectedNodeId = args.nodeId;
-        openModal(data);
-      } else {
-        alert("Data tidak ditemukan!");
-      }
-    }
-  }
-});
+      tree = new FamilyTree(document.getElementById("tree"), {
+        nodes: familyData,
+        nodeBinding: {
+          field_0: "namalengkap",
+          field_1: "panggilan",
+          field_2: "domisili"
+        },
+        template: "john",
+        editForm: false, // Matikan edit bawaan, kita override sendiri
+        enableEdit: true, // Aktifkan tombol edit di panel kanan!
+        nodeMenu: {}, // Kosongkan nodeMenu, edit hanya di panel kanan
+        onEdit: function(sender, node) {
+          // Dipanggil saat tombol edit di panel kanan di-klik!
+          const data = familyData.find(x => x.id == node.id);
+          if(data) {
+            selectedNodeId = node.id;
+            openModal(data);
+          }
+          // Return false agar edit bawaan FamilyTree.js tidak muncul
+          return false;
+        }
+      });
     }
 
     // Handle form submit
