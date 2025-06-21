@@ -4,68 +4,43 @@
   <meta charset="UTF-8">
   <title>Family Tree - FamilyTree.js</title>
   <script src="https://balkan.app/js/FamilyTree.js"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
-    body { min-height: 100vh; min-width: 100vw; background: #fff; }
-    h1 { text-align: center; font-size: 2rem; margin: 1rem 0 0.5rem 0; }
-    #tree { width: 100vw; height: 80vh; min-height: 400px; }
-    /* Modal styling, ready for future edit modal */
-    .modal-bg {
-      display: none;
-      position: fixed; z-index: 9999; left: 0; top: 0; width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.4); align-items: center; justify-content: center;
-    }
-    .modal-content {
-      background: white; padding: 1.5em; border-radius: 8px; min-width: 280px; max-width: 95vw;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    }
+    #tree { width: 100%; height: 700px; }
   </style>
 </head>
 <body>
   <h1>Family Tree (FamilyTree.js)</h1>
   <div id="tree"></div>
-  <!-- Modal ready for future edit, not shown for now -->
-  <div class="modal-bg" id="modal-bg">
-    <div class="modal-content">
-      <!-- Modal content here (not active in this version) -->
-    </div>
-  </div>
   <script>
-    // Ganti URL di bawah ini dengan URL Web App Google Apps Script Anda
-    const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyZZl2h8OBb2buS5Qv-3oumCNtC4e9xGHGRa0A6jGJ3Dq6BU8U5QblYnK7nRBz-_WNhVQ/exec";
+    // Fetch data from your Google Apps Script endpoint
+    fetch('https://script.google.com/macros/s/AKfycbyZZl2h8OBb2buS5Qv-3oumCNtC4e9xGHGRa0A6jGJ3Dq6BU8U5QblYnK7nRBz-_WNhVQ/exec')
+      .then(res => res.json())
+      .then(data => {
+        // Map your sheet data to FamilyTree.js format
+        const nodes = data.map(d => ({
+          id: d.id, // unique id
+          name: d.panggilan || d.namalengkap || '-', // show "panggilan" as name
+          gender: (d.kelamin && (d.kelamin.toUpperCase() === 'L' || d.kelamin.toLowerCase() === 'l')) ? 'laki-laki' : 'perempuan',
+          pids: d.pid ? [d.pid] : [],
+          fid: d.ida || undefined,
+          mid: d.idi || undefined,
+          domisili: d.domisili,
+          tahunlahir: d.tahunlahir,
+          tahunmeninggal: d.tahunmeninggal,
+          namabapak: d.namabapak,
+          namaibu: d.namaibu,
+        }));
 
-    function loadTreeData() {
-      fetch(GOOGLE_SHEET_API_URL)
-        .then(res => res.json())
-        .then(data => {
-          // Mapping ke format FamilyTree.js yang BENAR
-          const nodes = data.map(d => ({
-            id: d.id,
-            namalengkap: d.namalengkap,
-            gender: d.kelamin && d.kelamin.toUpperCase() === "L" ? "male" : "female",
-            pids: d.pids || [],
-            fid: d.fid || undefined,
-            mid: d.mid || undefined,
-            panggilan: d.panggilan,
-            domisili: d.domisili,
-            tahunlahir: d.tahunlahir,
-            tahunmeninggal: d.tahunmeninggal
-          }));
-
-          new FamilyTree(document.getElementById("tree"), {
-            nodes: nodes,
-            nodeBinding: {
-              field_0: "namalengkap"
-            },
-            scaleInitial: window.innerWidth < 600 ? FamilyTree.match.boundary : 1,
-            min: window.innerWidth < 600 ? 0.1 : 0.5,
-            max: 2
-          });
+        // Show the family tree
+        new FamilyTree(document.getElementById("tree"), {
+          nodes,
+          nodeBinding: {
+            field_0: "name"
+          },
+          // Custom gender labels (optional for your use case)
+          // If you want to show gender in the node, you can add more nodeBinding settings
         });
-    }
-
-    loadTreeData();
+      });
   </script>
 </body>
 </html>
