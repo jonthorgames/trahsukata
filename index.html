@@ -2,39 +2,35 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Trah Sukata</title>
+  <title>Pohon Keluarga Trah Sukata</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- FamilyTree.js dari jsdelivr -->
   <script src="https://cdn.jsdelivr.net/npm/@balkangraph/familytree.js@latest/familytree.min.js"></script>
   <style>
     html, body { height: 100%; margin: 0; padding: 0; }
     #tree { width: 100vw; height: 100vh; }
-    .ft-menu-row {
-      margin-bottom: 5px;
-    }
-    .ft-menu-label {
-      font-weight: bold;
-      width: 120px;
-      display: inline-block;
-    }
-    .ft-menu-value {
-      display: inline-block;
-    }
+    .ft-menu-row { margin-bottom: 5px; }
+    .ft-menu-label { font-weight: bold; width: 120px; display: inline-block; }
+    .ft-menu-value { display: inline-block; }
   </style>
 </head>
 <body>
   <div id="tree"></div>
   <script>
-    // Ganti dengan link endpoint kamu
     const ENDPOINT = "https://script.google.com/macros/s/AKfycbyZZl2h8OBb2buS5Qv-3oumCNtC4e9xGHGRa0A6jGJ3Dq6BU8U5QblYnK7nRBz-_WNhVQ/exec";
-
-    // Peta gender
     const genderMap = {
       "M": "Laki-laki",
       "F": "Perempuan",
       "Laki-laki": "Laki-laki",
       "Perempuan": "Perempuan"
     };
+
+    // Pastikan selalu mengirimkan placeholder jika foto kosong/tidak valid
+    function processFoto(url) {
+      if (typeof url !== "string" || url.trim() === "" || url.trim().toLowerCase() === "null" || url.trim().toLowerCase() === "undefined") {
+        return "";
+      }
+      return url.trim();
+    }
 
     function showDetailModal(d) {
       const infoHtml = `
@@ -62,6 +58,7 @@
         const nodes = data.map(item => {
           const displayName = (item.nama_panggilan && item.nama_panggilan.trim() !== "") ? item.nama_panggilan : item.nama_lengkap;
           const genderFT = (item.gender === "F" || item.gender === "Perempuan") ? "female" : "male";
+          const foto = processFoto(item.foto);
           return {
             id: item.id,
             pids: item.sid ? [item.sid] : [],
@@ -69,7 +66,8 @@
             mid: item.mid || null,
             name: displayName,
             gender: genderFT,
-            data: {
+            img: foto,
+            dataDetail: {
               nama_lengkap: item.nama_lengkap,
               nama_panggilan: item.nama_panggilan,
               gender: item.gender,
@@ -89,20 +87,20 @@
           template: "john",
           mode: "light",
           nodeBinding: {
-            field_0: "name"
+            field_0: "name",
+            img_0: "img"
           },
           nodeMenu: {
             details: { text: "Detail Anggota" }
           },
           onNodeMenuClick: function(sender, args) {
             if(args.menuItem === "details") {
-              showDetailModal(args.node.data);
+              showDetailModal(args.node.dataDetail);
             }
           },
           onClick: function(sender, args) {
-            // Hanya tampilkan detail jika klik pada node (bukan background atau pan)
             if (args && args.node) {
-              showDetailModal(args.node.data);
+              showDetailModal(args.node.dataDetail);
             }
           }
         });
