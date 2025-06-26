@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Pohon Keluarga Trah Sukata</title>
+  <title>Pohon Keluarga</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/@balkangraph/familytree.js@latest/familytree.min.js"></script>
   <style>
@@ -24,7 +24,6 @@
       "Perempuan": "Perempuan"
     };
 
-    // Pastikan selalu mengirimkan placeholder jika foto kosong/tidak valid
     function processFoto(url) {
       if (typeof url !== "string" || url.trim() === "" || url.trim().toLowerCase() === "null" || url.trim().toLowerCase() === "undefined") {
         return "";
@@ -67,19 +66,17 @@
             name: displayName,
             gender: genderFT,
             img: foto,
-            dataDetail: {
-              nama_lengkap: item.nama_lengkap,
-              nama_panggilan: item.nama_panggilan,
-              gender: item.gender,
-              domisili: item.domisili_terakhir,
-              tahun_lahir: item.tahun_lahir,
-              usia_saat_ini: item.usia_saat_ini,
-              tahun_wafat: item.tahun_wafat,
-              usia_saat_wafat: item.usia_saat_wafat,
-              nama_bapak: item.nama_bapak,
-              nama_ibu: item.nama_ibu,
-              nama_pasangan: item.pasangan
-            }
+            // Semua detail langsung jadi property node (bukan objek dataDetail)
+            nama_lengkap: item.nama_lengkap,
+            nama_panggilan: item.nama_panggilan,
+            domisili: item.domisili_terakhir,
+            tahun_lahir: item.tahun_lahir,
+            usia_saat_ini: item.usia_saat_ini,
+            tahun_wafat: item.tahun_wafat,
+            usia_saat_wafat: item.usia_saat_wafat,
+            nama_bapak: item.nama_bapak,
+            nama_ibu: item.nama_ibu,
+            nama_pasangan: item.pasangan,// untuk modal custom, supaya mapping dengan genderMap
           };
         });
 
@@ -88,19 +85,21 @@
           mode: "light",
           nodeBinding: {
             field_0: "name",
+            field_1: "nama_lengkap",
             img_0: "img"
+            // Tambahkan field_x lainnya jika ingin tampil di panel kanan
           },
           nodeMenu: {
             details: { text: "Detail Anggota" }
           },
           onNodeMenuClick: function(sender, args) {
             if(args.menuItem === "details") {
-              showDetailModal(args.node.dataDetail);
+              showDetailModal(args.node);
             }
           },
           onClick: function(sender, args) {
             if (args && args.node) {
-              showDetailModal(args.node.dataDetail);
+              showDetailModal(args.node);
             }
           }
         });
